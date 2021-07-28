@@ -15,12 +15,12 @@ if os.getenv('DEBUG') != None:
     mechlog.setLevel(logging.DEBUG)
 
 confirm_url = re.compile("https://.*\.(acm-)?certificates.amazon.com/approvals\?[A-Za-z0-9=&-]+")
-approval_text = re.compile("You have approved")
+approval_text = re.compile("You have\s*<[^>]*>APPROVED<[^>]*>\s*this validation request", re.DOTALL)
 
-domain_re = re.compile(".*<b>Domain name</b>.*?<td class='right-column'>\s+(.*?)\s.*", re.DOTALL)
-accountid_re = re.compile(".*<b>AWS account number</b>.*?<td class='right-column'>\s+(.*?)\s.*", re.DOTALL)
-region_re = re.compile(".*<b>AWS Region</b>.*?<td class='right-column'>\s+(.*?)\s.*", re.DOTALL)
-certid_re = re.compile(".*<b>Certificate identifier</b>.*?<td class='right-column'>\s+(.*?)\s.*", re.DOTALL)
+domain_re = re.compile(".*<[^>]*>\s*Domain name\s*<[^>]*>[^<]*<[^>]*>\s*([^\s<]*)\s*<[^>]*>", re.DOTALL)
+accountid_re = re.compile(".*<[^>]*>\s*AWS Account number\s*<[^>]*>[^<]*<[^>]*>\s*([^\s<]*)\s*<[^>]*>", re.DOTALL)
+region_re = re.compile(".*<[^>]*>\s*AWS Region\s*<[^>]*>[^<]*<[^>]*>\s*([^\s<]*)\s*<[^>]*>", re.DOTALL)
+certid_re = re.compile(".*<[^>]*>\s*Certificate Identifier\s*<[^>]*>[^<]*<[^>]*>\s*[^\s<]*certificate\/([^\s<]+)\s*<[^>]*>", re.DOTALL)
 
 def panic(msg):
     raise Exception(msg)
