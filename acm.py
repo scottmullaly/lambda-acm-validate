@@ -27,7 +27,12 @@ def panic(msg):
 
 def validate(event, context):
     msg = json.loads(event['Records'][0]['Sns']['Message'])
-    match = confirm_url.search(msg['content'])
+    if msg.get('content'):
+        match = confirm_url.search(msg['content'])
+    else:
+        logging.warn("Message has no 'content' key! This is probably not a confirmation email notification.")
+        logging.warn(msg)
+        return
 
     # Ignore emails that don't match the certificate confirm URL
     if not match:
