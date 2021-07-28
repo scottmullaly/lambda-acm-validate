@@ -31,6 +31,7 @@ def validate(event, context):
 
     # Ignore emails that don't match the certificate confirm URL
     if not match:
+        logging.info("This is not a confirmation email, exiting.")
         return
 
     url = match.group(0)
