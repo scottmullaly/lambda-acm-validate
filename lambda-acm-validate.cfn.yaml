@@ -9,6 +9,14 @@ Parameters:
     Type: String
     Default: acm.zip
     Description: Full S3 object key for acm.zip, e.g. lambda/acm.zip
+  TopicArn:
+    Type: String
+    Default: ""
+    Description: The ARN of the topic to subcribe to
+
+Conditions:
+  CreateOwnTopic: !Equals [ !Ref TopicArn, "" ]
+  UseExistingTopic: !Not [ Condition: CreateOwnTopic ]
 
 Resources:
   Role:
@@ -39,8 +47,18 @@ Resources:
     Properties:
       DisplayName: lambda-acm-validate
       Subscription:
-        - Endpoint: !GetAtt [Function, Arn]
+        - Endpoint: !GetAtt Function.Arn
           Protocol: lambda
+    Condition: CreateOwnTopic
+
+  # SNS Topic was created elsewhere, subscribe to it
+  Subscribe:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref TopicArn
+      Protocol: lambda
+      Endpoint: !GetAtt Function.Arn
+    Condition: UseExistingTopic
 
   Function:
     Type: AWS::Lambda::Function
@@ -50,7 +68,7 @@ Resources:
         S3Key: !Ref Zip
       Handler: acm.validate
       MemorySize: 128
-      Role: !GetAtt [Role, Arn]
+      Role: !GetAtt Role.Arn
       Runtime: python2.7
       Timeout: 10
 
@@ -61,8 +79,9 @@ Resources:
       FunctionName: !Ref Function
       Action: lambda:InvokeFunction
       Principal: sns.amazonaws.com
-      SourceArn: !Ref Topic
+      SourceArn: !If [ UseExistingTopic, !Ref TopicArn, !Ref Topic ]
 
 Outputs:
   Topic:
-    Value: !GetAtt [Topic, TopicName]
+    Value: !GetAtt Topic.TopicName
+    Condition: CreateOwnTopic
