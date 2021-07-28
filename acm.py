@@ -73,9 +73,20 @@ def validate(event, context):
     # Could we match on action="/approvals"?
     br.select_form(nr=0)
     logging.info("SUBMITTING CONFIRMATION FORM")
-    response = br.submit(name='commit')
-    logging.info("SUBMITTED CONFIRMATION FORM")
-    content = response.get_data()
+
+    # Get the submit button for "I Approve"
+    submit_button = -1
+    for i, control in enumerate(br.forms()[0].controls):
+        if control.type == 'submit' and control.value == 'I Approve':
+            submit_button = i
+
+    if submit_button != -1:
+        response = br.submit(nr=0)
+        logging.info("SUBMITTED CONFIRMATION FORM")
+        content = response.get_data()
+    else:
+        logging.error(content)
+        panic("No approval submit button found!")
 
     match = approval_text.search(content)
     if match:
